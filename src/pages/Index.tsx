@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   DndContext,
@@ -16,9 +15,11 @@ import { TaskColumn } from '@/components/TaskColumn';
 import { TaskDialog } from '@/components/TaskDialog';
 import { TaskCard } from '@/components/TaskCard';
 import { UserProfile } from '@/components/UserProfile';
+import { AuthLayout } from '@/components/AuthLayout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useAuth } from '@/hooks/useAuth';
 import { Task, Column } from '@/types/task';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,12 +30,14 @@ const initialColumns: Column[] = [
 ];
 
 const Index = () => {
+  const { user, loading, login, logout, isAuthenticated } = useAuth();
   const [columns, setColumns] = useLocalStorage<Column[]>('task-board-columns', initialColumns);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [newTaskStatus, setNewTaskStatus] = useState<'todo' | 'inProgress' | 'done'>('todo');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -247,6 +250,19 @@ const Index = () => {
     });
   };
 
+  // If not authenticated, show auth layout
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthLayout onAuthSuccess={login} />;
+  }
+
   const filteredColumns = columns.map(column => ({
     ...column,
     tasks: column.tasks.filter(task =>
@@ -260,12 +276,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header */}
+      {/* Mobile-Responsive Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo and Stats */}
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 TaskBoard
               </h1>
               <div className="hidden sm:flex items-center space-x-2 text-sm text-muted-foreground">
@@ -275,7 +292,8 @@ const Index = () => {
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -291,32 +309,81 @@ const Index = () => {
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Task
+                <span className="hidden sm:inline">Add Task</span>
               </Button>
               
-              <UserProfile userName="John Doe" userEmail="john@example.com" />
+              <UserProfile userName={user.name} userEmail={user.email} onLogout={logout} />
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden pb-4 space-y-4 animate-fade-in">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full bg-white/50"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Button
+                  onClick={() => {
+                    handleAddTask('todo');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
+                
+                <UserProfile userName={user.name} userEmail={user.email} onLogout={logout} />
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                  {totalTasks} tasks
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content - Mobile Responsive */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-6 overflow-x-auto pb-6">
+          {/* Mobile: Stacked Columns, Desktop: Side by side */}
+          <div className="flex flex-col lg:flex-row gap-6 lg:overflow-x-auto pb-6">
             {filteredColumns.map((column) => (
-              <TaskColumn
-                key={column.id}
-                column={column}
-                onAddTask={handleAddTask}
-                onEditTask={handleEditTask}
-                onDeleteTask={handleDeleteTask}
-              />
+              <div key={column.id} className="w-full lg:w-80 lg:flex-shrink-0">
+                <TaskColumn
+                  column={column}
+                  onAddTask={handleAddTask}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={handleDeleteTask}
+                />
+              </div>
             ))}
           </div>
 

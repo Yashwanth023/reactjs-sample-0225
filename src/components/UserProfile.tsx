@@ -16,9 +16,10 @@ import { useRandomAvatar } from '@/hooks/useRandomAvatar';
 interface UserProfileProps {
   userName: string;
   userEmail: string;
+  onLogout: () => void;
 }
 
-export function UserProfile({ userName, userEmail }: UserProfileProps) {
+export function UserProfile({ userName, userEmail, onLogout }: UserProfileProps) {
   const { avatar, loading } = useRandomAvatar();
 
   return (
@@ -33,7 +34,7 @@ export function UserProfile({ userName, userEmail }: UserProfileProps) {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56 bg-white border shadow-lg" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{userName}</p>
@@ -52,7 +53,7 @@ export function UserProfile({ userName, userEmail }: UserProfileProps) {
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={onLogout} className="text-red-600">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
