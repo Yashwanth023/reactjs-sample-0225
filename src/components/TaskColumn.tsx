@@ -13,9 +13,10 @@ interface TaskColumnProps {
   onAddTask: (status: 'todo' | 'inProgress' | 'done') => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
+  onMarkComplete?: (task: Task) => void;
 }
 
-export function TaskColumn({ column, onAddTask, onEditTask, onDeleteTask }: TaskColumnProps) {
+export function TaskColumn({ column, onAddTask, onEditTask, onDeleteTask, onMarkComplete }: TaskColumnProps) {
   const { setNodeRef } = useDroppable({
     id: column.id,
   });
@@ -65,6 +66,7 @@ export function TaskColumn({ column, onAddTask, onEditTask, onDeleteTask }: Task
                 task={task}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
+                onMarkComplete={onMarkComplete}
               />
             ))}
           </SortableContext>

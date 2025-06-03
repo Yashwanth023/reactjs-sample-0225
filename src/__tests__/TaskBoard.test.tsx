@@ -33,7 +33,7 @@ global.fetch = jest.fn(() =>
   Promise.resolve({
     json: () => Promise.resolve({ download_url: 'https://example.com/avatar.jpg' }),
   })
-) as jest.Mock;
+) as jest.MockedFunction<typeof fetch>;
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
@@ -56,7 +56,7 @@ describe('TaskBoard Application', () => {
   beforeEach(() => {
     mockLocalStorage.getItem.mockClear();
     mockLocalStorage.setItem.mockClear();
-    (fetch as jest.Mock).mockClear();
+    (fetch as jest.MockedFunction<typeof fetch>).mockClear();
   });
 
   describe('Authentication', () => {

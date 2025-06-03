@@ -250,6 +250,34 @@ const Index = () => {
     });
   };
 
+  const handleMarkComplete = (task: Task) => {
+    setColumns(prev => {
+      const newColumns = [...prev];
+      const { columnIndex, taskIndex } = findTaskIndex(task.id);
+      
+      if (columnIndex !== -1) {
+        // Update the task status to 'done'
+        const updatedTask = { ...task, status: 'done' as const, updatedAt: new Date() };
+        
+        // Remove from current column
+        newColumns[columnIndex].tasks.splice(taskIndex, 1);
+        
+        // Add to done column
+        const doneColumnIndex = newColumns.findIndex(col => col.status === 'done');
+        if (doneColumnIndex !== -1) {
+          newColumns[doneColumnIndex].tasks.push(updatedTask);
+        }
+        
+        toast({
+          title: 'Task completed',
+          description: 'Task has been marked as complete and moved to Done.',
+        });
+      }
+      
+      return newColumns;
+    });
+  };
+
   // If not authenticated, show auth layout
   if (loading) {
     return (
@@ -382,6 +410,7 @@ const Index = () => {
                   onAddTask={handleAddTask}
                   onEditTask={handleEditTask}
                   onDeleteTask={handleDeleteTask}
+                  onMarkComplete={handleMarkComplete}
                 />
               </div>
             ))}
@@ -393,6 +422,7 @@ const Index = () => {
                 task={activeTask}
                 onEdit={handleEditTask}
                 onDelete={handleDeleteTask}
+                onMarkComplete={handleMarkComplete}
               />
             ) : null}
           </DragOverlay>
