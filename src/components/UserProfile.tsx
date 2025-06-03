@@ -58,7 +58,7 @@ export function UserProfile({ userName, userEmail, onLogout }: UserProfileProps)
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-white/95 backdrop-blur-sm border border-white/20 shadow-xl rounded-lg" align="end" forceMount>
+      <DropdownMenuContent className="w-56 bg-white backdrop-blur-sm border border-gray-200 shadow-xl rounded-lg z-50" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none text-gray-900">{userName}</p>
